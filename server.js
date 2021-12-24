@@ -33,7 +33,7 @@ const Doc = require('./models/Doc');
 
 
 
-
+// connecting
 mongoose.connect(MONGOOSE_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -43,8 +43,11 @@ mongoose.connect(MONGOOSE_URL, {
     .then(() => console.log('connected to mongodb'))
     .catch((error) => console.error(error));
 
+
+
 app.get('/runcode', (req, res) => {
     var url = req.query.url;
+        console.log(url);
     const headers = {
         'Content-Type': 'application/json',
         'client-secret': process.env.REACT_APP_HACKEREARTH_SECRET
@@ -65,7 +68,7 @@ app.post('/runcode', (req, res) => {
     // get post data from request
 
     var data = req.body;
-
+    console.log(data);
     const url = "https://api.hackerearth.com/v4/partner/code-evaluation/submissions/";
     fetch(url, {
         method: 'post',
@@ -75,8 +78,14 @@ app.post('/runcode', (req, res) => {
             'client-secret': process.env.REACT_APP_HACKEREARTH_SECRET
         },
     })
-        .then(res => res.json())
+        .then((res) => {
+          console.log("This is the res recieved ")
+          console.log(res)
+          res.json()})
         .then(json => {
+
+            const err = new MongooseError(message);
+            console.log(json);
             res.send(json);
         }).catch((err) => {
             res.send(err)
@@ -96,7 +105,7 @@ io.on('connection', (socket) => {
 
 
         socket.on('changes', delta => {
-            
+
             socket.broadcast.to(DocId).emit("receive-changes", delta);
         });
 
@@ -120,6 +129,7 @@ io.on('connection', (socket) => {
 
 
     socket.on('join-room', (roomId, userId, userName) => {
+        console.log(roomId);
         socket.join(roomId)
         socket.to(roomId).emit('user-connected', userId)
 
@@ -145,6 +155,6 @@ var findOrCreateDocument = async (id) => {
 };
 
 server.listen(PORT, () => {
-    console.log(`Express Server Listening to ${PORT}`);
+    console.log(`Express Server running on ${PORT}`);
     console.log(`Socket Listening to ${FRONTEND_ORIGIN}`);
 })
